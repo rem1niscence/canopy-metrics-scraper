@@ -2,7 +2,12 @@ module github.com/canopy-network/load_tester
 
 go 1.24.0
 
-require github.com/canopy-network/canopy v0.0.0-20250508154302-f3e7303acac9
+require (
+	github.com/canopy-network/canopy v0.0.0-20250508154302-f3e7303acac9
+	github.com/mattn/go-sqlite3 v1.14.28
+	github.com/prometheus/client_model v0.6.1
+	github.com/prometheus/common v0.62.0
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -41,8 +46,6 @@ require (
 	github.com/phuslu/iploc v1.0.20240731 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
-	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rs/cors v1.11.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
@@ -56,3 +59,5 @@ require (
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
+
+replace github.com/canopy-network/canopy => ../canopy
