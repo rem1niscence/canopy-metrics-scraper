@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  metrics-scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: metrics-scraper
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DB_NAME=/app/data/metrics.sqlite3
+    command:
+      - "--dbName=/app/data/metrics.sqlite3"
+      - "--url=http://localhost:50002"
+      - "--metricsURL=http://localhost:9090/metrics"
+      - "--chainID=1"
+    restart: unless-stopped
+    network_mode: host
+
+volumes:
+  data:
+    driver: local
