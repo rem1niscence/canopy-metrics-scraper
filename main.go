@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/canopy-network/canopy/cmd/rpc"
 	"github.com/canopy-network/canopy/lib"
@@ -45,9 +44,6 @@ func main() {
 
 	rcManager := rpc.NewRCManager(GatherMetrics(metrics, logger), config, logger)
 	rcManager.Start()
-
-	// wait for the root chain to be ready as the connection attempt is asynchronous
-	time.Sleep(3 * time.Second)
 
 	logger.Info("listening to new blocks")
 	<-sigChan

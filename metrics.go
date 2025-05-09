@@ -51,7 +51,7 @@ func NewMetrics(dbFileName string, scrapURL string) (*Metrics, error) {
 		},
 	}
 
-	if err := metrics.createTable(); err != nil {
+	if err := metrics.createMetricsTable(); err != nil {
 		return nil, err
 	}
 
@@ -140,7 +140,7 @@ func (m *Metrics) InsertMetric(metric *Metric) error {
 	return nil
 }
 
-func (m *Metrics) createTable() error {
+func (m *Metrics) createMetricsTable() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS metrics (
     height INTEGER PRIMARY KEY,

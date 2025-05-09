@@ -3,7 +3,7 @@ module github.com/canopy-network/load_tester
 go 1.24.0
 
 require (
-	github.com/canopy-network/canopy v0.0.0-20250508154302-f3e7303acac9
+	github.com/canopy-network/canopy v0.0.0-20250509151724-ba068fc9aa2f
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/prometheus/client_model v0.6.1
 	github.com/prometheus/common v0.62.0
@@ -59,5 +59,3 @@ require (
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
-
-replace github.com/canopy-network/canopy => ../canopy
