@@ -1,4 +1,4 @@
-package main
+package metrics
 
 import (
 	"database/sql"
@@ -26,14 +26,14 @@ type Metric struct {
 	BlockBuildTime float64
 }
 
-type Metrics struct {
+type MetricsManager struct {
 	db         *sql.DB
 	scrapURL   string
 	metrics    map[MetricName]float64
 	httpClient *http.Client
 }
 
-func NewMetrics(dbFileName string, scrapURL string) (*Metrics, error) {
+func New(dbFileName string, scrapURL string) (*MetricsManager, error) {
 	db, err := sql.Open("sqlite3", dbFileName)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func NewMetrics(dbFileName string, scrapURL string) (*Metrics, error) {
 		return nil, err
 	}
 
-	metrics := &Metrics{
+	metrics := &MetricsManager{
 		db:       db,
 		scrapURL: scrapURL,
 		httpClient: &http.Client{
@@ -58,14 +58,14 @@ func NewMetrics(dbFileName string, scrapURL string) (*Metrics, error) {
 	return metrics, nil
 }
 
-func (m *Metrics) GetMetric(name MetricName) (float64, error) {
+func (m *MetricsManager) GetMetric(name MetricName) (float64, error) {
 	if value, ok := m.metrics[name]; ok {
 		return value, nil
 	}
 	return 0, fmt.Errorf("metric %s not found", name)
 }
 
-func (m *Metrics) Scrap() error {
+func (m *MetricsManager) Scrap() error {
 	metricFamilies, err := m.retrieveMetrics()
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func (m *Metrics) Scrap() error {
 	return nil
 }
 
-func (m *Metrics) retrieveMetrics() (map[string]*dto.MetricFamily, error) {
+func (m *MetricsManager) retrieveMetrics() (map[string]*dto.MetricFamily, error) {
 	resp, err := m.httpClient.Get(m.scrapURL)
 	if err != nil {
 		return nil, err
@@ -108,7 +108,7 @@ func (m *Metrics) retrieveMetrics() (map[string]*dto.MetricFamily, error) {
 	return metricFamilies, nil
 }
 
-func (m *Metrics) InsertMetric(metric *Metric) error {
+func (m *MetricsManager) InsertMetric(metric *Metric) error {
 	var currBlockchainSize uint64
 	err := m.db.QueryRow("SELECT COALESCE(SUM(block_size), 0) FROM metrics").Scan(&currBlockchainSize)
 	if err != nil {
@@ -140,7 +140,7 @@ func (m *Metrics) InsertMetric(metric *Metric) error {
 	return nil
 }
 
-func (m *Metrics) createMetricsTable() error {
+func (m *MetricsManager) createMetricsTable() error {
 	query := `
 	CREATE TABLE IF NOT EXISTS metrics (
     height INTEGER PRIMARY KEY,

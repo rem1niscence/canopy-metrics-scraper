@@ -8,6 +8,7 @@ import (
 
 	"github.com/canopy-network/canopy/cmd/rpc"
 	"github.com/canopy-network/canopy/lib"
+	"github.com/canopy-network/load_tester/metrics"
 )
 
 var (
@@ -18,13 +19,13 @@ var (
 )
 
 func main() {
+	flag.Parse()
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
 	logger := lib.NewDefaultLogger()
 
-	flag.Parse()
-
-	metrics, err := NewMetrics(*dbName, *metricsURL)
+	metricsManager, err := metrics.New(*dbName, *metricsURL)
 	if err != nil {
 		logger.Errorf("failed to create metrics database: %v", err)
 		return
@@ -42,7 +43,7 @@ func main() {
 		},
 	}
 
-	rcManager := rpc.NewRCManager(GatherMetrics(metrics, logger), config, logger)
+	rcManager := rpc.NewRCManager(GatherMetrics(metricsManager, logger), config, logger)
 	rcManager.Start()
 
 	logger.Info("listening to new blocks")
@@ -51,35 +52,35 @@ func main() {
 }
 
 // GatherStats() collects information from the chain on each new block
-func GatherMetrics(metrics *Metrics, logger lib.LoggerI) func(info *lib.RootChainInfo) {
+func GatherMetrics(metricsManager *metrics.MetricsManager, logger lib.LoggerI) func(info *lib.RootChainInfo) {
 	return func(info *lib.RootChainInfo) {
-		if err := metrics.Scrap(); err != nil {
+		if err := metricsManager.Scrap(); err != nil {
 			logger.Errorf("failed to scrap metrics: %v\n", err)
 		}
 
-		blkProcessTime, err := metrics.GetMetric(BlockProcessingTime)
+		blkProcessTime, err := metricsManager.GetMetric(metrics.BlockProcessingTime)
 		if err != nil {
 			logger.Errorf("failed to get block processing time: %v\n", err)
 		}
 
-		blkSize, err := metrics.GetMetric(BlockSize)
+		blkSize, err := metricsManager.GetMetric(metrics.BlockSize)
 		if err != nil {
 			logger.Errorf("failed to get block size: %v\n", err)
 		}
 
-		partitionTime, err := metrics.GetMetric(DBPartitionTime)
+		partitionTime, err := metricsManager.GetMetric(metrics.DBPartitionTime)
 		if err != nil {
 			logger.Errorf("failed to get partition time: %v\n", err)
 		}
 
-		metric := &Metric{
+		metric := &metrics.Metric{
 			Height:         info.Height,
 			PartitionTime:  partitionTime,
 			BlockBuildTime: blkProcessTime,
 			BlockSize:      uint64(blkSize),
 		}
 
-		if err := metrics.InsertMetric(metric); err != nil {
+		if err := metricsManager.InsertMetric(metric); err != nil {
 			logger.Errorf("failed to insert metric: %v\n", err)
 		}
 	}
