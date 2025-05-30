@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/canopy-network/canopy/cmd/rpc"
 	"github.com/canopy-network/canopy/lib"
@@ -46,7 +47,13 @@ func main() {
 	rcManager := rpc.NewRCManager(GatherMetrics(metricsManager, logger), config, logger)
 	rcManager.Start()
 
+	// hack to fail fast if no chains are found
+	time.Sleep(15 * time.Second)
 	logger.Info("listening to new blocks")
+	if ids := rcManager.ChainIds(); len(ids) == 0 {
+		logger.Error("no chains found, exiting")
+		return
+	}
 	<-sigChan
 	logger.Info("closing the program")
 }
