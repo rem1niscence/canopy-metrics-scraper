@@ -148,8 +148,27 @@ func (m *MetricsManager) createMetricsTable() error {
     partition_time REAL NOT NULL,
     block_size INTEGER NOT NULL,
     blockchain_size INTEGER NOT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    timestamp_delta_seconds INTEGER DEFAULT 0
 );
+
+    -- Trigger to calculate the timestamp delta in seconds
+		CREATE TRIGGER IF NOT EXISTS calculate_timestamp_delta
+		AFTER INSERT ON metrics
+		BEGIN
+		    UPDATE metrics
+		    SET timestamp_delta_seconds = (
+		        SELECT
+		            CAST((julianday(NEW.timestamp) - julianday(prev.timestamp)) * 86400 AS INTEGER)
+		        FROM metrics prev
+		        WHERE prev.height = (
+		            SELECT MAX(height)
+		            FROM metrics
+		            WHERE height < NEW.height
+		        )
+		    )
+		    WHERE rowid = NEW.rowid;
+		END;
 	`
 	_, err := m.db.Exec(query)
 	return err
